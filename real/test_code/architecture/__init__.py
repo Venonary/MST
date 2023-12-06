@@ -10,6 +10,7 @@ from .MST_Plus_Plus import MST_Plus_Plus
 from .Lambda_Net import Lambda_Net
 from .CST import CST
 from .DAUHST import DAUHST
+from .BiSRNet import BiSRNet
 
 def model_generator(method, pretrained_model_path=None):
     if method == 'mst_s':
@@ -49,6 +50,8 @@ def model_generator(method, pretrained_model_path=None):
         model = CST(num_blocks=[2, 4, 6], sparse=True).cuda()
     elif method == 'cst_l_plus':
         model = CST(num_blocks=[2, 4, 6], sparse=False).cuda()
+    elif method == 'bisrnet':
+        model = BiSRNet(in_channels=28, out_channels=28, n_feat=28, stage=1, num_blocks=[1,1,1]).cuda()
     elif 'dauhst' in method:
         num_iterations = int(method.split('_')[1][0])
         model = DAUHST(num_iterations=num_iterations).cuda()
@@ -56,9 +59,12 @@ def model_generator(method, pretrained_model_path=None):
         print(f'Method {method} is not defined !!!!')
     if pretrained_model_path is not None:
         print(f'load model from {pretrained_model_path}')
-        checkpoint = torch.load(pretrained_model_path)
-        model.load_state_dict({k.replace('module.', ''): v for k, v in checkpoint.items()},
-                              strict=True)
+        try:
+            checkpoint = torch.load(pretrained_model_path)
+            model.load_state_dict({k.replace('module.', ''): v for k, v in checkpoint.items()},
+                                  strict=True)
+        except:
+            model = torch.load(pretrained_model_path)
     if method == 'hdnet':
-        return model,fdl_loss
+        return model, fdl_loss
     return model
